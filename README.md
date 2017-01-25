@@ -22,5 +22,5 @@ Made with :yum: from Leipzig
 
 © 2017 [appPlant GmbH][appplant]
 
-[repo:] https://hub.docker.com/r/appplant/mruby-cli/
+[repo]: https://hub.docker.com/r/appplant/mruby-cli/
 [license]: https://opensource.org/licenses/MIT
