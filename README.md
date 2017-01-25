@@ -24,3 +24,4 @@ Made with :yum: from Leipzig
 
 [repo]: https://hub.docker.com/r/appplant/mruby-cli/
 [license]: https://opensource.org/licenses/MIT
+[appplant]: www.appplant.de
