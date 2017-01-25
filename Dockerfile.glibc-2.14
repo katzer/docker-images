@@ -1,0 +1,2 @@
+FROM hone/mruby-cli
+MAINTAINER Sebastian Katzer "katzer@appplant.de"
