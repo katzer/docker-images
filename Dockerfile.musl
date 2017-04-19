@@ -4,13 +4,13 @@ MAINTAINER Sebastian Katzer "katzer@appplant.de"
 RUN apk update && apk add --no-cache \
         bison \
         gcc \
+        clang \
         git \
         libgcc \
         musl-dev \
         openssh \
         ruby \
-        tar \
-        tree
+        tar
 
 RUN    gem update  --no-ri --no-rdoc --system \
     && gem install --no-ri --no-rdoc rake test-unit
