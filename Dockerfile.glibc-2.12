@@ -2,8 +2,10 @@ FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 RUN    yum -y update \
+    && yum -y install epel-release \
     && yum -y groupinstall "Development Tools" \
     && yum -y install libgcc glibc-devel libgcc.i686 glibc-devel.i686 \
+    && yum -y install clang clang-devel \
     && yum -y install curl tar \
     && yum -y clean all
 
