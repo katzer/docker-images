@@ -21,6 +21,9 @@ To compile against musl:
 
 ## Development
 
+A copy of an MacOSX SDK is required for the cross-build image _Dockerfile.glibc-2.14_.
+The SDKs are available from [here][osx].
+
 Build each docker image:
 
     $ docker build -f Dockerfile.[glibc-2.12|glibc-2.14|musl] -t appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl] .
@@ -32,7 +35,7 @@ Open a shell to see if all works fine:
 
 Finally upload the images:
 
-    $ docker push appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl] 
+    $ docker push appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl]
 
 
 ## License
@@ -44,5 +47,6 @@ Made with :yum: from Leipzig
 © 2017 [appPlant GmbH][appplant]
 
 [repo]: https://hub.docker.com/r/appplant/mruby-cli/
+[osx]: https://github.com/phracker/MacOSX-SDKs/releases
 [license]: https://opensource.org/licenses/MIT
 [appplant]: www.appplant.de
