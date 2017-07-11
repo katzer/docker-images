@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   mingw-w64 \
   mingw-w64-tools \
   msitools \
+  musl musl-dev musl-tools \
   patch \
   rpm \
   sed \
