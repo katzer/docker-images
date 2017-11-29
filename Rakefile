@@ -23,17 +23,17 @@
 namespace :build do
   desc 'Build appplant/mruby-cli:glibc-2.12'
   task :glibc_2_12 do
-    sh 'docker build -f Dockertask.glibc-2.12 -t appplant/mruby-cli:glibc-2.12 .'
+    sh 'docker build -f Dockerfile.glibc-2.12 -t appplant/mruby-cli:glibc-2.12 .'
   end
 
   desc 'Build appplant/mruby-cli:glibc-2.14'
   task :glibc_2_14 do
-    sh 'docker build -f Dockertask.glibc-2.14 -t appplant/mruby-cli:glibc-2.14 .'
+    sh 'docker build -f Dockerfile.glibc-2.14 -t appplant/mruby-cli:glibc-2.14 .'
   end
 
   desc 'Build appplant/mruby-cli:musl'
   task :musl do
-    sh 'docker build -f Dockertask.musl -t appplant/mruby-cli:musl .'
+    sh 'docker build -f Dockerfile.musl -t appplant/mruby-cli:musl .'
   end
 end
 
