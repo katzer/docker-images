@@ -32,10 +32,13 @@ Open a shell to see if all works fine:
 
     $ docker run -ti appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl] /bin/sh -l
 
-
 Finally upload the images:
 
     $ docker push appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl]
+
+See the build tasks:
+
+    $ rake -T
 
 
 ## License
