@@ -24,19 +24,112 @@ FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 RUN    yum -y update \
-    && yum -y install epel-release \
+    && yum -y install epel-release centos-release-scl \
     && yum -y groupinstall "Development Tools" \
     && yum -y install libgcc glibc-devel libgcc.i686 glibc-devel.i686 \
+    && yum -y install devtoolset-4-gcc devtoolset-4-binutils devtoolset-4-gcc-c++ \
     && yum -y install clang clang-devel \
-    && yum -y install curl tar \
+    && yum -y install cmake curl tar \
     && yum -y clean all
+ENV PATH /opt/rh/devtoolset-4/root/usr/bin:$PATH
 
-RUN    mkdir -p /opt/ruby-2.2.3/ \
-    && curl -s https://s3.amazonaws.com/pkgr-buildpack-ruby/current/centos-6/ruby-2.2.3.tgz | tar xzC /opt/ruby-2.2.3/
+RUN mkdir -p /opt/ruby-2.2.3/ && \
+    curl -s https://s3.amazonaws.com/pkgr-buildpack-ruby/current/centos-6/ruby-2.2.3.tgz | tar xzC /opt/ruby-2.2.3/
 ENV PATH /opt/ruby-2.2.3/bin:$PATH
+RUN echo "gem: --no-document" > ~/.gemrc && \
+    gem install rake bundler --force
 
-WORKDIR /home/mruby/code
-ENV GEM_HOME /home/mruby/code/.gem/
+RUN cd /opt && \
+    curl -s https://zlib.net/zlib-1.2.11.tar.gz | tar xzC . && mv zlib-1.2.11 zlib && \
+    curl -s https://tls.mbed.org/download/mbedtls-2.6.0-apache.tgz | tar xzC . && mv mbedtls-2.6.0 mbedtls && \
+    curl -s https://www.libssh2.org/download/libssh2-1.8.0.tar.gz | tar xzC . && mv libssh2-1.8.0 ssh2 && \
+    curl -s https://curl.haxx.se/download/curl-7.57.0.tar.gz | tar xzC . && mv curl-7.57.0 curl
 
-ENV PATH $GEM_HOME/bin/:$PATH
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+ENV LINUX_OPTS -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr
+ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/lib -DCMAKE_C_FLAGS='-m32 -march=i686'
+ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/lib64
+
+# zlib
+RUN cd /opt/zlib && \
+    ./configure \
+        --prefix /usr \
+        --libdir /usr/lib64 \
+        --shared && \
+    make install && make clean
+RUN cd /opt/zlib && \
+    CFLAGS='-m32 -march=i686' \
+    ./configure \
+        --prefix /usr \
+        --shared && \
+    make install && make clean
+
+# mbedtls
+ENV MBED_OPTS -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF -DENABLE_ZLIB_SUPPORT=ON -DLINK_WITH_PTHREAD=ON -DINSTALL_MBEDTLS_HEADERS=ON -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=ON
+RUN mkdir -p /opt/mbedtls/build/x86_64-linux-gnu && \
+    cd /opt/mbedtls/build/x86_64-linux-gnu && \
+    cmake \
+        $MBED_OPTS $LINUX64_OPTS \
+        -DLIB_INSTALL_DIR=/usr/lib64 \
+    ../.. && \
+    cmake --build . && cmake --build . --target install
+RUN mkdir -p /opt/mbedtls/build/i386-linux-gnu && \
+    cd /opt/mbedtls/build/i386-linux-gnu && \
+    cmake \
+        $MBED_OPTS $LINUX32_OPTS \
+        -DINSTALL_MBEDTLS_HEADERS=OFF \
+    ../.. && \
+    cmake --build . && cmake --build . --target install
+
+# libssh2 with mbedTLS
+ENV SSH2_OPTS -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCRYPTO_BACKEND=mbedTLS -DENABLE_ZLIB_COMPRESSION=ON
+RUN mkdir -p /opt/ssh2/build/x86_64-linux-gnu-so && \
+    cd /opt/ssh2/build/x86_64-linux-gnu-so && \
+    cmake \
+        $SSH2_OPTS $LINUX64_OPTS \
+        -DBUILD_SHARED_LIBS=ON \
+    ../.. && \
+    cmake --build . && cmake --build . --target install && \
+    mkdir -p /opt/ssh2/build/x86_64-linux-gnu-ar && \
+    cd /opt/ssh2/build/x86_64-linux-gnu-ar && \
+    cmake \
+        $SSH2_OPTS $LINUX64_OPTS \
+        -DBUILD_SHARED_LIBS=OFF \
+    ../.. && \
+    cmake --build . && cmake --build . --target install
+RUN mkdir -p /opt/ssh2/build/i386-linux-gnu-so && \
+    cd /opt/ssh2/build/i386-linux-gnu-so && \
+    cmake \
+        $SSH2_OPTS $LINUX32_OPTS \
+        -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
+        -DBUILD_SHARED_LIBS=ON \
+    ../.. && \
+    cmake --build . && cmake --build . --target install && \
+    mkdir -p /opt/ssh2/build/i386-linux-gnu-ar && \
+    cd /opt/ssh2/build/i386-linux-gnu-ar && \
+    cmake \
+        $SSH2_OPTS $LINUX32_OPTS \
+        -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
+        -DBUILD_SHARED_LIBS=OFF \
+    ../.. && \
+    cmake --build . && cmake --build . --target install
+
+# install curl with ssh2
+ENV CURL_OPTS --enable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
+RUN cd /opt/curl && \
+    ./configure \
+        $CURL_OPTS \
+        --prefix /usr \
+        --libdir /usr/lib64 && \
+    make install && make clean
+RUN cd /opt/curl && \
+    CFLAGS='-m32 -march=i686' \
+    ./configure \
+        $CURL_OPTS \
+        --prefix /usr && \
+    make install && make clean
+
+ONBUILD WORKDIR /home/mruby/code
+ONBUILD ENV GEM_HOME /home/mruby/.gem
+
+ONBUILD ENV PATH $GEM_HOME/bin:$PATH
+ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/lib:/usr/lib

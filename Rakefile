@@ -40,7 +40,7 @@ end
 namespace :shell do
   desc 'Shell into appplant/mruby-cli:glibc-2.12'
   task :glibc_2_12 do
-    sh 'docker run -ti appplant/mruby-cli:glibc-2.12 /bin/sh -l'
+    sh 'docker run -ti appplant/mruby-cli:glibc-2.12 /bin/bash -l'
   end
 
   desc 'Shell into appplant/mruby-cli:glibc-2.14'

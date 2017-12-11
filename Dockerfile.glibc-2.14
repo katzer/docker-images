@@ -60,7 +60,6 @@ COPY MacOSX10.11.sdk.tar.xz /opt/osxcross/tarballs/
 RUN echo "\n" | bash /opt/osxcross/build.sh
 RUN rm /opt/osxcross/tarballs/*
 ENV PATH /opt/osxcross/target/bin:$PATH
-ENV MACOSX_DEPLOYMENT_TARGET 10.5
 
 RUN cd /opt && \
     curl -s https://zlib.net/zlib-1.2.11.tar.gz | tar xzC . && mv zlib-1.2.11 zlib && \
@@ -70,7 +69,7 @@ RUN cd /opt && \
 
 RUN apt-get remove -y curl
 
-ENV LINUX_OPTS -DCMAKE_INSTALL_PREFIX=/usr
+ENV LINUX_OPTS -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr
 ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib/i386-linux-gnu -DCMAKE_C_FLAGS='-m32 -march=i686'
 ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu
 
@@ -91,10 +90,20 @@ RUN cd /opt/zlib && \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
-    CFLAGS='-m32 -march=i686' ./configure \
+    CFLAGS='-m32 -march=i686' \
+    ./configure \
         --prefix /usr \
         --libdir /usr/lib/i386-linux-gnu \
         --includedir /usr/include \
+        --shared && \
+    make install && make clean
+RUN cd /opt/zlib && \
+    CC=musl-gcc \
+    CHOST=x86_64-linux-musl \
+    ./configure \
+        --prefix /usr/x86_64-linux-musl \
+        --libdir /usr/x86_64-linux-musl/lib \
+        --includedir /usr/x86_64-linux-musl/include \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
@@ -270,7 +279,7 @@ RUN mkdir -p /opt/ssh2/build/i686-w64-mingw32 && \
     cmake --build . && cmake --build . --target install
 
 # install curl with ssh2
-ENV CURL_OPTS --enable-shared --enable-static --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --enable-http --enable-ftp --enable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2
+ENV CURL_OPTS --enable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
 RUN cd /opt/curl && \
     ./configure \
         $CURL_OPTS \
@@ -278,9 +287,9 @@ RUN cd /opt/curl && \
         --libdir /usr/lib/x86_64-linux-gnu && \
     make install && make clean
 RUN cd /opt/curl && \
+    CFLAGS='-m32 -march=i686' \
     ./configure \
         $CURL_OPTS \
-        CFLAGS='-m32 -march=i686' \
         --prefix /usr \
         --libdir /usr/lib/i386-linux-gnu && \
     make install && make clean
@@ -319,10 +328,8 @@ RUN cd /opt/curl && \
         --prefix=/usr/i686-w64-mingw32 && \
     make install && make clean
 
-ENV SHELL /bin/bash
-
 ONBUILD WORKDIR /home/mruby/code
-ONBUILD ENV GEM_HOME /home/mruby/.gem/
+ONBUILD ENV GEM_HOME /home/mruby/.gem
 
-ONBUILD ENV PATH $GEM_HOME/bin/:$PATH
-ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/:/usr/local/lib/
+ONBUILD ENV PATH $GEM_HOME/bin:$PATH
+ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/local/lib
