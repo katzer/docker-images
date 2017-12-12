@@ -67,34 +67,30 @@ RUN cd /opt && \
     curl -s https://www.libssh2.org/download/libssh2-1.8.0.tar.gz | tar xzC . && mv libssh2-1.8.0 ssh2 && \
     curl -s https://curl.haxx.se/download/curl-7.57.0.tar.gz | tar xzC . && mv curl-7.57.0 curl
 
-RUN apt-get remove -y curl
+ENV LINUX_OPTS -DCMAKE_C_FLAGS='-Os' -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr/local
+ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib32 -DCMAKE_C_FLAGS='-m32 -march=i686 -Os'
+ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib
 
-ENV LINUX_OPTS -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr
-ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib/i386-linux-gnu -DCMAKE_C_FLAGS='-m32 -march=i686'
-ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu
-
-ENV OSX_OPTS -DCMAKE_SYSTEM_NAME=Darwin -DCMAKE_HOST_SYSTEM_NAME=Darwin -DCMAKE_CROSSCOMPILING=TRUE -DCMAKE_FIND_ROOT_PATH=/opt/osxcross/target/SDK/MacOSX10.11.sdk/usr -DCMAKE_OSX_SYSROOT=/opt/osxcross/target/SDK/MacOSX10.11.sdk -DCMAKE_INSTALL_PREFIX=/opt/osxcross/target/SDK/MacOSX10.11.sdk/usr
+ENV OSX_OPTS -DCMAKE_SYSTEM_NAME=Darwin -DCMAKE_HOST_SYSTEM_NAME=Darwin -DCMAKE_CROSSCOMPILING=TRUE -DCMAKE_FIND_ROOT_PATH=/opt/osxcross/target/SDK/MacOSX10.11.sdk/usr/local -DCMAKE_OSX_SYSROOT=/opt/osxcross/target/SDK/MacOSX10.11.sdk -DCMAKE_INSTALL_PREFIX=/opt/osxcross/target/SDK/MacOSX10.11.sdk/usr/local
 ENV OSX32_OPTS $OSX_OPTS -DCMAKE_C_COMPILER=i386-apple-darwin15-clang -DCMAKE_FIND_ROOT_PATH=/usr/i386-apple-darwin15 -DCMAKE_INSTALL_PREFIX=/usr/i386-apple-darwin15
 ENV OSX64_OPTS $OSX_OPTS -DCMAKE_C_COMPILER=x86_64-apple-darwin15-clang -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-apple-darwin15 -DCMAKE_INSTALL_PREFIX=/usr/x86_64-apple-darwin15
 
-ENV WIN_OPTS -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_HOST_SYSTEM_NAME=Windows -DCMAKE_CROSSCOMPILING=TRUE
+ENV WIN_OPTS -DCMAKE_C_FLAGS='-Os' -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_HOST_SYSTEM_NAME=Windows -DCMAKE_CROSSCOMPILING=TRUE
 ENV WIN32_OPTS $WIN_OPTS -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_RC_COMPILER=i686-w64-mingw32-windres -DCMAKE_FIND_ROOT_PATH=/usr/i686-w64-mingw32 -DCMAKE_INSTALL_PREFIX=/usr/i686-w64-mingw32
 ENV WIN64_OPTS $WIN_OPTS -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 -DCMAKE_INSTALL_PREFIX=/usr/x86_64-w64-mingw32
 
 # zlib
 RUN cd /opt/zlib && \
     ./configure \
-        --prefix /usr \
-        --libdir /usr/lib/x86_64-linux-gnu \
-        --includedir /usr/include \
+        --prefix /usr/local \
+        --libdir /usr/local/lib \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
     CFLAGS='-m32 -march=i686' \
     ./configure \
-        --prefix /usr \
-        --libdir /usr/lib/i386-linux-gnu \
-        --includedir /usr/include \
+        --prefix /usr/local \
+        --libdir /usr/local/lib32 \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
@@ -102,30 +98,24 @@ RUN cd /opt/zlib && \
     CHOST=x86_64-linux-musl \
     ./configure \
         --prefix /usr/x86_64-linux-musl \
-        --libdir /usr/x86_64-linux-musl/lib \
-        --includedir /usr/x86_64-linux-musl/include \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
-    ln -s /opt/osxcross/target/bin/x86_64-apple-darwin15-libtool /usr/bin/libtool && \
+    ln -s /opt/osxcross/target/bin/x86_64-apple-darwin15-libtool /usr/local/bin/libtool && \
     CC=x86_64-apple-darwin15-clang \
     CHOST=x86_64-apple-darwin15 \
     ./configure \
         --prefix /usr/x86_64-apple-darwin15 \
-        --libdir /usr/x86_64-apple-darwin15/lib \
-        --includedir /usr/x86_64-apple-darwin15/include \
         --shared && \
-    make install && make clean && rm -d /usr/bin/libtool
+    make install && make clean && rm -d /usr/local/bin/libtool
 RUN cd /opt/zlib && \
-    ln -s /opt/osxcross/target/bin/i386-apple-darwin15-libtool /usr/bin/libtool && \
+    ln -s /opt/osxcross/target/bin/i386-apple-darwin15-libtool /usr/local/bin/libtool && \
     CC=i386-apple-darwin15-clang \
     CHOST=i386-apple-darwin15 \
     ./configure \
         --prefix /usr/i386-apple-darwin15 \
-        --libdir /usr/i386-apple-darwin15/lib \
-        --includedir /usr/i386-apple-darwin15/include \
         --shared && \
-    make install && make clean && rm -d /usr/bin/libtool
+    make install && make clean && rm -d /usr/local/bin/libtool
 RUN cd /opt/zlib && \
     BINARY_PATH=/usr/x86_64-w64-mingw32/lib \
     LIBRARY_PATH=/usr/x86_64-w64-mingw32/lib \
@@ -146,43 +136,49 @@ RUN cd /opt/zlib && \
     make clean
 
 # mbedtls
-ENV MBED_OPTS -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF -DENABLE_ZLIB_SUPPORT=ON -DLINK_WITH_PTHREAD=ON -DINSTALL_MBEDTLS_HEADERS=ON -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=ON
+ENV MBED_OPTS -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF -DENABLE_ZLIB_SUPPORT=ON -DLINK_WITH_PTHREAD=ON -DINSTALL_MBEDTLS_HEADERS=ON -DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON
 RUN mkdir -p /opt/mbedtls/build/x86_64-linux-gnu && \
     cd /opt/mbedtls/build/x86_64-linux-gnu && \
     cmake \
         $MBED_OPTS $LINUX64_OPTS \
-        -DLIB_INSTALL_DIR=/usr/lib/x86_64-linux-gnu \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/mbedtls/build/i386-linux-gnu && \
     cd /opt/mbedtls/build/i386-linux-gnu && \
     cmake \
         $MBED_OPTS $LINUX32_OPTS \
-        -DLIB_INSTALL_DIR=/usr/lib/i386-linux-gnu \
+        -DLIB_INSTALL_DIR=/usr/local/lib32 \
+        -DZLIB_LIBRARY_RELEASE=/usr/local/lib32 \
         -DINSTALL_MBEDTLS_HEADERS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/mbedtls/build/x86_64-apple-darwin15 && \
     cd /opt/mbedtls/build/x86_64-apple-darwin15 && \
-    cmake $MBED_OPTS $OSX64_OPTS ../.. && \
+    cmake \
+        $MBED_OPTS $OSX64_OPTS \
+    ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/mbedtls/build/i386-apple-darwin15 && \
     cd /opt/mbedtls/build/i386-apple-darwin15 && \
-    cmake $MBED_OPTS $OSX32_OPTS ../.. && \
+    cmake \
+        $MBED_OPTS $OSX32_OPTS \
+    ../.. && \
     cmake --build . && cmake --build . --target install
 RUN cd /opt/mbedtls && \
+    CFLAGS='-Os' \
     CC=x86_64-w64-mingw32-gcc \
     WINDOWS_BUILD=1 \
-    SHARED=1 \
+    SHARED=0 \
     ZLIB=1 \
     PTHREAD=1 \
     make \
         DESTDIR=/usr/x86_64-w64-mingw32 \
         lib install clean
 RUN cd /opt/mbedtls && \
+    CFLAGS='-Os' \
     CC=i686-w64-mingw32-gcc \
     WINDOWS_BUILD=1 \
-    SHARED=1 \
+    SHARED=0 \
     ZLIB=1 \
     PTHREAD=1 \
     make \
@@ -190,17 +186,11 @@ RUN cd /opt/mbedtls && \
         lib install clean
 
 # libssh2 with mbedTLS
-ENV SSH2_OPTS -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCRYPTO_BACKEND=mbedTLS -DENABLE_ZLIB_COMPRESSION=ON
+ENV SSH2_OPTS -DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCRYPTO_BACKEND=mbedTLS -DENABLE_ZLIB_COMPRESSION=ON
 RUN mkdir -p /opt/ssh2/build/x86_64-linux-gnu && \
     cd /opt/ssh2/build/x86_64-linux-gnu && \
     cmake \
         $SSH2_OPTS $LINUX64_OPTS \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install && \
-    cmake \
-        $SSH2_OPTS $LINUX64_OPTS \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/ssh2/build/i386-linux-gnu && \
@@ -208,41 +198,18 @@ RUN mkdir -p /opt/ssh2/build/i386-linux-gnu && \
     cmake \
         $SSH2_OPTS $LINUX32_OPTS \
         -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install && \
-    cmake \
-        $SSH2_OPTS $LINUX32_OPTS \
-        -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/ssh2/build/x86_64-apple-darwin15 && \
     cd /opt/ssh2/build/x86_64-apple-darwin15 && \
     cmake \
         $SSH2_OPTS $OSX64_OPTS \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install
-RUN mkdir -p /opt/ssh2/build/x86_64-apple-darwin15 && \
-    cd /opt/ssh2/build/x86_64-apple-darwin15 && \
-    cmake \
-        $SSH2_OPTS $OSX64_OPTS \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/ssh2/build/i386-apple-darwin15 && \
     cd /opt/ssh2/build/i386-apple-darwin15 && \
     cmake \
         $SSH2_OPTS $OSX32_OPTS \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install
-RUN mkdir -p /opt/ssh2/build/i386-apple-darwin15 && \
-    cd /opt/ssh2/build/i386-apple-darwin15 && \
-    cmake \
-        $SSH2_OPTS $OSX32_OPTS \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/ssh2/build/x86_64-w64-mingw32 && \
@@ -250,15 +217,6 @@ RUN mkdir -p /opt/ssh2/build/x86_64-w64-mingw32 && \
     cmake \
         $SSH2_OPTS $WIN64_OPTS \
         -DCMAKE_INSTALL_BINDIR=lib \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install
-RUN mkdir -p /opt/ssh2/build/x86_64-w64-mingw32 && \
-    cd /opt/ssh2/build/x86_64-w64-mingw32 && \
-    cmake \
-        $SSH2_OPTS $WIN64_OPTS \
-        -DCMAKE_INSTALL_BINDIR=lib \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/ssh2/build/i686-w64-mingw32 && \
@@ -266,32 +224,26 @@ RUN mkdir -p /opt/ssh2/build/i686-w64-mingw32 && \
     cmake \
         $SSH2_OPTS $WIN32_OPTS \
         -DCMAKE_INSTALL_BINDIR=lib \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install
-RUN mkdir -p /opt/ssh2/build/i686-w64-mingw32 && \
-    cd /opt/ssh2/build/i686-w64-mingw32 && \
-    cmake \
-        $SSH2_OPTS $WIN32_OPTS \
-        -DCMAKE_INSTALL_BINDIR=lib \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 
 # install curl with ssh2
-ENV CURL_OPTS --enable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
+ENV CURL_OPTS --disable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
 RUN cd /opt/curl && \
+    CFLAGS='-m32 -march=i686 -Os' \
     ./configure \
         $CURL_OPTS \
-        --prefix /usr \
-        --libdir /usr/lib/x86_64-linux-gnu && \
+        --libdir=/usr/local/lib32 \
+        --with-libssh2=/usr/local/lib32 \
+        --with-mbedtls=/usr/local/lib32 \
+        --with-zlib=/usr/local/lib32 \
+        --prefix /usr/local && \
     make install && make clean
 RUN cd /opt/curl && \
-    CFLAGS='-m32 -march=i686' \
+    CFLAGS='-Os' \
     ./configure \
         $CURL_OPTS \
-        --prefix /usr \
-        --libdir /usr/lib/i386-linux-gnu && \
+        --prefix /usr/local && \
     make install && make clean
 RUN cd /opt/curl && \
     CC=x86_64-apple-darwin15-clang \
@@ -314,6 +266,7 @@ RUN cd /opt/curl && \
         --prefix=/usr/i386-apple-darwin15 && \
     make install && make clean
 RUN cd /opt/curl && \
+    CFLAGS='-Os' \
     CC=x86_64-w64-mingw32-gcc \
     ./configure \
         $CURL_OPTS \
@@ -321,12 +274,16 @@ RUN cd /opt/curl && \
         --prefix=/usr/x86_64-w64-mingw32 && \
     make install && make clean
 RUN cd /opt/curl && \
+    CFLAGS='-Os' \
     CC=i686-w64-mingw32-gcc \
     ./configure \
         $CURL_OPTS \
         --host=i686-w64-mingw32 \
         --prefix=/usr/i686-w64-mingw32 && \
     make install && make clean
+
+RUN mv /usr/local/bin/curl /usr/local/bin/curly && \
+    mv /usr/local/bin/curl-config /usr/local/bin/curly-config
 
 ONBUILD WORKDIR /home/mruby/code
 ONBUILD ENV GEM_HOME /home/mruby/.gem

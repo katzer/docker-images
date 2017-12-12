@@ -45,31 +45,32 @@ RUN cd /opt && \
     curl -s https://www.libssh2.org/download/libssh2-1.8.0.tar.gz | tar xzC . && mv libssh2-1.8.0 ssh2 && \
     curl -s https://curl.haxx.se/download/curl-7.57.0.tar.gz | tar xzC . && mv curl-7.57.0 curl
 
-ENV LINUX_OPTS -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr
-ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/lib -DCMAKE_C_FLAGS='-m32 -march=i686'
-ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/lib64
+ENV LINUX_OPTS -DCMAKE_C_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_C_FLAGS='-Os'
+ENV LINUX32_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/local/lib -DCMAKE_C_FLAGS='-m32 -march=i686 -Os'
+ENV LINUX64_OPTS $LINUX_OPTS -DCMAKE_INSTALL_LIBDIR=/usr/local/lib64
 
 # zlib
 RUN cd /opt/zlib && \
+    CFLAGS='-Os' \
     ./configure \
-        --prefix /usr \
-        --libdir /usr/lib64 \
+        --prefix /usr/local \
+        --libdir /usr/local/lib64 \
         --shared && \
     make install && make clean
 RUN cd /opt/zlib && \
-    CFLAGS='-m32 -march=i686' \
+    CFLAGS='-m32 -march=i686 -Os' \
     ./configure \
-        --prefix /usr \
+        --prefix /usr/local \
         --shared && \
     make install && make clean
 
 # mbedtls
-ENV MBED_OPTS -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF -DENABLE_ZLIB_SUPPORT=ON -DLINK_WITH_PTHREAD=ON -DINSTALL_MBEDTLS_HEADERS=ON -DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=ON
+ENV MBED_OPTS -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF -DENABLE_ZLIB_SUPPORT=ON -DLINK_WITH_PTHREAD=ON -DINSTALL_MBEDTLS_HEADERS=ON -DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON
 RUN mkdir -p /opt/mbedtls/build/x86_64-linux-gnu && \
     cd /opt/mbedtls/build/x86_64-linux-gnu && \
     cmake \
         $MBED_OPTS $LINUX64_OPTS \
-        -DLIB_INSTALL_DIR=/usr/lib64 \
+        -DLIB_INSTALL_DIR=/usr/local/lib64 \
     ../.. && \
     cmake --build . && cmake --build . --target install
 RUN mkdir -p /opt/mbedtls/build/i386-linux-gnu && \
@@ -81,55 +82,43 @@ RUN mkdir -p /opt/mbedtls/build/i386-linux-gnu && \
     cmake --build . && cmake --build . --target install
 
 # libssh2 with mbedTLS
-ENV SSH2_OPTS -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCRYPTO_BACKEND=mbedTLS -DENABLE_ZLIB_COMPRESSION=ON
-RUN mkdir -p /opt/ssh2/build/x86_64-linux-gnu-so && \
-    cd /opt/ssh2/build/x86_64-linux-gnu-so && \
+ENV SSH2_OPTS -DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCRYPTO_BACKEND=mbedTLS -DENABLE_ZLIB_COMPRESSION=ON
+RUN mkdir -p /opt/ssh2/build/x86_64-linux-gnu && \
+    cd /opt/ssh2/build/x86_64-linux-gnu && \
     cmake \
         $SSH2_OPTS $LINUX64_OPTS \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install && \
-    mkdir -p /opt/ssh2/build/x86_64-linux-gnu-ar && \
-    cd /opt/ssh2/build/x86_64-linux-gnu-ar && \
-    cmake \
-        $SSH2_OPTS $LINUX64_OPTS \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
-RUN mkdir -p /opt/ssh2/build/i386-linux-gnu-so && \
-    cd /opt/ssh2/build/i386-linux-gnu-so && \
+RUN mkdir -p /opt/ssh2/build/i386-linux-gnu && \
+    cd /opt/ssh2/build/i386-linux-gnu && \
     cmake \
         $SSH2_OPTS $LINUX32_OPTS \
         -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
-        -DBUILD_SHARED_LIBS=ON \
-    ../.. && \
-    cmake --build . && cmake --build . --target install && \
-    mkdir -p /opt/ssh2/build/i386-linux-gnu-ar && \
-    cd /opt/ssh2/build/i386-linux-gnu-ar && \
-    cmake \
-        $SSH2_OPTS $LINUX32_OPTS \
-        -DCMAKE_TOOLCHAIN_FILE=../../cmake/Toolchain-Linux-32.cmake \
-        -DBUILD_SHARED_LIBS=OFF \
     ../.. && \
     cmake --build . && cmake --build . --target install
 
 # install curl with ssh2
-ENV CURL_OPTS --enable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
+ENV CURL_OPTS --disable-shared --enable-static --enable-pthreads --disable-ldap --disable-sspi --without-librtmp --disable-file --disable-dict --disable-telnet --disable-tftp --disable-rtsp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-smb --disable-manual --disable-versioned-symbols --disable-hidden-symbols --disable-ares --disable-http --enable-ftp --disable-proxy --without-libidn2 --without-libpsl --with-zlib --without-ssl --with-mbedtls --with-libssh2 --disable-libcurl-option --disable-verbose --disable-debug
 RUN cd /opt/curl && \
+    LD_LIBRARY_PATH=/usr/local/lib \
+    CFLAGS='-m32 -march=i686 -Os' \
     ./configure \
         $CURL_OPTS \
-        --prefix /usr \
-        --libdir /usr/lib64 && \
+        --prefix /usr/local && \
     make install && make clean
 RUN cd /opt/curl && \
-    CFLAGS='-m32 -march=i686' \
+    CFLAGS='-Os' \
     ./configure \
         $CURL_OPTS \
-        --prefix /usr && \
+        --prefix /usr/local \
+        --libdir /usr/local/lib64 && \
     make install && make clean
+
+RUN mv /usr/local/bin/curl /usr/local/bin/curly && \
+    mv /usr/local/bin/curl-config /usr/local/bin/curly-config
 
 ONBUILD WORKDIR /home/mruby/code
 ONBUILD ENV GEM_HOME /home/mruby/.gem
 
 ONBUILD ENV PATH $GEM_HOME/bin:$PATH
-ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/lib:/usr/lib
+ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64:/usr/local/lib:/usr/lib

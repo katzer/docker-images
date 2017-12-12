@@ -24,26 +24,15 @@ FROM alpine:3.7
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 RUN apk update && apk add --no-cache \
-        bison \
-        gcc \
-        clang \
-        git \
-        libgcc \
-        musl-dev \
-        openssh \
-        ruby \
-        tar
+    bison \
+    gcc \
+    git \
+    libgcc \
+    musl-dev \
+    ruby \
+    tar
 
-RUN    gem update  --no-ri --no-rdoc --system \
-    && gem install --no-ri --no-rdoc rake test-unit
+RUN gem update  --no-ri --no-rdoc --system && \
+    gem install --no-ri --no-rdoc --force rake bundler
 
-RUN    mkdir -p $HOME/.ssh \
-    && ssh-keygen -A \
-    && /usr/sbin/sshd \
-    && ssh-keygen -t rsa -q -f $HOME/.ssh/orbit.key -N "" \
-    && cp $HOME/.ssh/orbit.key.pub $HOME/.ssh/authorized_keys \
-    && ssh-keyscan -t ecdsa-sha2-nistp256 localhost > $HOME/.ssh/known_hosts
-
-RUN echo $'\n/usr/sbin/sshd\neval `ssh-agent -s`\nssh-add $HOME/.ssh/orbit.key\n' >> $HOME/.profile
-
-WORKDIR /home/mruby/code
+ONBUILD WORKDIR /home/mruby/code
