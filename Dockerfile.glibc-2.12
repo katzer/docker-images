@@ -29,7 +29,7 @@ RUN    yum -y update \
     && yum -y install libgcc glibc-devel libgcc.i686 glibc-devel.i686 \
     && yum -y install devtoolset-4-gcc devtoolset-4-binutils devtoolset-4-gcc-c++ \
     && yum -y install clang clang-devel \
-    && yum -y install cmake curl tar \
+    && yum -y install curl tar \
     && yum -y clean all
 ENV PATH /opt/rh/devtoolset-4/root/usr/bin:$PATH
 
