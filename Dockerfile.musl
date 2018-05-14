@@ -23,16 +23,31 @@
 FROM alpine:3.7
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
+# libs
 RUN apk update && apk add --no-cache \
-    bison \
-    gcc \
-    git \
-    libgcc \
-    musl-dev \
-    ruby \
-    tar
+        bison \
+        gcc \
+        git \
+        libgcc \
+        musl-dev \
+        openssh \
+        ruby \
+        tar
 
-RUN gem update  --no-ri --no-rdoc --system && \
-    gem install --no-ri --no-rdoc --force rake bundler
+# ruby
+RUN echo "gem: --no-document" > $HOME/.gemrc && \
+    gem install --force rake bundler
 
+# sshd
+RUN    mkdir -p $HOME/.ssh \
+    && ssh-keygen -A \
+    && /usr/sbin/sshd \
+    && ssh-keygen -t rsa -q -f $HOME/.ssh/dev.key -N "" \
+    && echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys \
+    && ssh-keygen -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
+    && echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys \
+    && ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts \
+    && echo $'\n/usr/sbin/sshd\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key\n' > $HOME/.sshrc
+
+ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ONBUILD WORKDIR /home/mruby/code

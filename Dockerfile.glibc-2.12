@@ -23,24 +23,36 @@
 FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
-RUN    yum -y update \
-    && yum -y install epel-release centos-release-scl \
-    && yum -y groupinstall "Development Tools" \
-    && yum -y install libgcc glibc-devel libgcc.i686 glibc-devel.i686 \
-    && yum -y install devtoolset-4-gcc devtoolset-4-binutils devtoolset-4-gcc-c++ \
-    && yum -y install clang clang-devel \
-    && yum -y install curl tar \
-    && yum -y clean all
+# libs
+RUN yum  -y update && yum -y groupinstall "Development Tools" && yum -y install epel-release centos-release-scl \
+            clang clang-devel \
+            curl \
+            devtoolset-4-binutils \
+            devtoolset-4-gcc \
+            glibc-devel glibc-devel.i686 \
+            libgcc libgcc.i686 \
+            openssh-clients \
+            openssh-server \
+            tar && \
+    yum  -y clean all
 ENV PATH /opt/rh/devtoolset-4/root/usr/bin:$PATH
 
-RUN mkdir -p /opt/ruby-2.2.3/ && \
-    curl -s https://s3.amazonaws.com/pkgr-buildpack-ruby/current/centos-6/ruby-2.2.3.tgz | tar xzC /opt/ruby-2.2.3/
-ENV PATH /opt/ruby-2.2.3/bin:$PATH
+# ruby
+RUN mkdir -p /opt/ruby-2.3.0/ && \
+    curl -s https://s3.amazonaws.com/pkgr-buildpack-ruby/current/centos-6/ruby-2.3.0.tgz | tar xzC /opt/ruby-2.3.0/
+ENV PATH /opt/ruby-2.3.0/bin:$PATH
 RUN echo "gem: --no-document" > ~/.gemrc && \
     gem install rake bundler --force
 
-ONBUILD WORKDIR /home/mruby/code
-ONBUILD ENV GEM_HOME /home/mruby/.gem
+# sshd
+RUN    mkdir -p $HOME/.ssh \
+    && service sshd start \
+    && ssh-keygen -t rsa -q -f $HOME/.ssh/dev.key -N "" \
+    && echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys \
+    && ssh-keygen -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
+    && echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys \
+    && ssh-keyscan -t rsa localhost >> $HOME/.ssh/known_hosts \
+    && echo $'\nservice sshd start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key\n' > $HOME/.sshrc
 
-ONBUILD ENV PATH $GEM_HOME/bin:$PATH
 ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+ONBUILD WORKDIR /home/mruby/code
