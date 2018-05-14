@@ -24,7 +24,7 @@ FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 # libs
-RUN yum  -y update && yum -y groupinstall "Development Tools" && yum -y install epel-release centos-release-scl \
+RUN yum  -y update && yum -y groupinstall "Development Tools" && yum -y install epel-release centos-release-scl && yum -y install \
             clang clang-devel \
             curl \
             devtoolset-4-binutils \
@@ -54,5 +54,6 @@ RUN    mkdir -p $HOME/.ssh \
     && ssh-keyscan -t rsa localhost >> $HOME/.ssh/known_hosts \
     && echo $'\nservice sshd start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key\n' > $HOME/.sshrc
 
-ONBUILD ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+ONBUILD ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ONBUILD ENV PATH=/home/mruby/code/bintest/tools:$PATH
 ONBUILD WORKDIR /home/mruby/code
