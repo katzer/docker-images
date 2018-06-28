@@ -24,25 +24,31 @@ FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 # libs
-RUN yum  -y update && yum -y groupinstall "Development Tools" && yum -y install epel-release centos-release-scl && yum -y install \
-            clang clang-devel \
+RUN yum  -y update && yum -y install epel-release centos-release-scl && yum -y install \
+            bison \
+            clang \
             curl \
             devtoolset-4-binutils \
             devtoolset-4-gcc \
-            # glibc-devel glibc-devel.i686 \
-            # libgcc libgcc.i686 \
+            git \
+            # glibc-devel.i686 \
+            # libgcc.i686 \
             openssh-clients \
             openssh-server \
             tar && \
     yum  -y clean all
+RUN mkdir -p /usr/lib/gcc/x86_64-redhat-linux && \
+    rm -rf /usr/lib/gcc/x86_64-redhat-linux/4.4.4 && \
+    ln -s /opt/rh/devtoolset-4/root/usr/lib/gcc/x86_64-redhat-linux/5.3.1 /usr/lib/gcc/x86_64-redhat-linux/4.4.4
 ENV PATH /opt/rh/devtoolset-4/root/usr/bin:$PATH
 
 # ruby
-RUN mkdir -p /opt/ruby-2.3.0/ && \
-    curl -s https://s3.amazonaws.com/pkgr-buildpack-ruby/current/centos-6/ruby-2.3.0.tgz | tar xzC /opt/ruby-2.3.0/
-ENV PATH /opt/ruby-2.3.0/bin:$PATH
-RUN echo "gem: --no-document" > ~/.gemrc && \
-    gem install rake bundler --force
+RUN cd /tmp && curl -s http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.1.tar.gz -s -o - | tar zxf - && cd /tmp/ruby-2.5.1 && \
+    ./configure --prefix=/opt/ruby --disable-install-doc && \
+    make && make install && \
+    echo "gem: --no-document" > ~/.gemrc && \
+    rm -rf /tmp/*
+ENV PATH /opt/ruby/bin:$PATH
 
 # sshd
 RUN    mkdir -p $HOME/.ssh \
