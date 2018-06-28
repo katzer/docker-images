@@ -25,28 +25,20 @@ MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 # libs
 RUN apt-get update && apt-get install -y --no-install-recommends \
-            automake \
             bison \
-            build-essential \
-            ca-certificates \
             clang \
             curl \
             # gcc-multilib \
             git \
-            libtool \
-            llvm-dev \
-            make \
+            llvm \
             mingw-w64 \
             mingw-w64-tools \
             musl \
-            musl-dev \
             musl-tools \
             openssh-client \
             openssh-server \
             ruby \
-            sed \
-            tar \
-            vim && \
+            tar && \
     apt-get clean && apt-get autoremove
 
 # ruby
@@ -54,10 +46,10 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
     gem install rake bundler --force
 
 # osx cross compiling tools
-RUN cd /opt/ && git clone -q https://github.com/tpoechtrager/osxcross.git
-COPY MacOSX10.11.sdk.tar.xz /opt/osxcross/tarballs/
-RUN echo "\n" | bash /opt/osxcross/build.sh
-RUN rm /opt/osxcross/tarballs/*
+RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
+RUN curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz && \
+    echo "\n" | bash /opt/osxcross/build.sh && \
+    cd /opt/osxcross && rm -rf *~ build *.tar.xz
 ENV PATH /opt/osxcross/target/bin:$PATH
 
 # sshd
