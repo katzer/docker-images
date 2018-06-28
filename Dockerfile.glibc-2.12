@@ -29,8 +29,8 @@ RUN yum  -y update && yum -y groupinstall "Development Tools" && yum -y install 
             curl \
             devtoolset-4-binutils \
             devtoolset-4-gcc \
-            glibc-devel glibc-devel.i686 \
-            libgcc libgcc.i686 \
+            # glibc-devel glibc-devel.i686 \
+            # libgcc libgcc.i686 \
             openssh-clients \
             openssh-server \
             tar && \
