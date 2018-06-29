@@ -61,6 +61,6 @@ RUN    mkdir -p $HOME/.ssh \
     && echo $'service sshd start' > $HOME/.sshdrc \
     && echo $'service sshd start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
 
-ONBUILD ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ONBUILD ENV PATH=/home/mruby/code/bintest/tools:$PATH
+ENV PATH=/home/mruby/code/bintest/tools:$PATH
+
 ONBUILD WORKDIR /home/mruby/code
