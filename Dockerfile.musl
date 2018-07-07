@@ -50,6 +50,4 @@ RUN    mkdir -p $HOME/.ssh \
     && echo $'/usr/sbin/sshd' > $HOME/.sshdrc \
     && echo $'/usr/sbin/sshd\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
 
-ENV PATH=/home/mruby/code/bintest/tools:$PATH
-
 ONBUILD WORKDIR /home/mruby/code
