@@ -32,24 +32,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
             git \
             llvm \
             mingw-w64 \
-            mingw-w64-tools \
             musl \
             musl-tools \
             openssh-client \
             openssh-server \
             ruby \
             tar && \
-    apt-get clean && apt-get autoremove
+    apt-get clean && apt-get autoremove -y
 
-# ruby
+# rake
 RUN echo "gem: --no-document" > ~/.gemrc && \
-    gem install rake bundler --force
+    gem install rake --force
 
 # osx cross compiling tools
 RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
-RUN curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz && \
-    echo "\n" | bash /opt/osxcross/build.sh && \
-    cd /opt/osxcross && rm -rf *~ build *.tar.xz
+RUN    apt-get install -y make patch xz-utils \
+    && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz \
+    && UNATTENDED=1 ./opt/osxcross/build.sh \
+    && cd /opt/osxcross && rm -rf *~ build tarballs/* \
+    && apt-get remove -y make patch xz-utils && apt-get autoremove -y
 ENV PATH /opt/osxcross/target/bin:$PATH
 
 # sshd
@@ -62,7 +63,5 @@ RUN    mkdir -p $HOME/.ssh \
     && ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts \
     && echo '/etc/init.d/ssh start' > $HOME/.sshdrc \
     && echo '/etc/init.d/ssh start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
-
-ENV PATH=/home/mruby/code/bintest/tools:$PATH
 
 ONBUILD WORKDIR /home/mruby/code
