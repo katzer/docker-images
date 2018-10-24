@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ubuntu:18.04
+FROM ubuntu:18.10
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
 # libs
@@ -47,7 +47,7 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
 # osx cross compiling tools
 RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
 RUN    apt-get install -y make patch xz-utils \
-    && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz \
+    && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz \
     && UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh \
     && cd /opt/osxcross && rm -rf *~ build tarballs/* \
     && apt-get remove -y make patch xz-utils && apt-get autoremove -y
