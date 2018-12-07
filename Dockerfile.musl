@@ -36,7 +36,7 @@ RUN apk update && apk add --no-cache \
 
 # ruby
 RUN echo "gem: --no-document" > $HOME/.gemrc && \
-    gem install --force rake bundler
+    gem install --force rake
 
 # sshd
 RUN    mkdir -p $HOME/.ssh \
