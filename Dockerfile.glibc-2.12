@@ -23,13 +23,16 @@
 FROM centos:6
 MAINTAINER Sebastian Katzer "katzer@appplant.de"
 
+# clang-7 repo
+COPY llvm.repo /etc/yum.repos.d/llvm.repo
+
 # libs
 RUN yum  -y update && yum -y install epel-release centos-release-scl && yum -y install \
             bison \
             clang \
             curl \
-            devtoolset-4-binutils \
-            devtoolset-4-gcc \
+            devtoolset-7-binutils \
+            devtoolset-7-gcc \
             git \
             # glibc-devel.i686 \
             # libgcc.i686 \
@@ -39,11 +42,11 @@ RUN yum  -y update && yum -y install epel-release centos-release-scl && yum -y i
     yum  -y clean all
 RUN mkdir -p /usr/lib/gcc/x86_64-redhat-linux && \
     rm -rf /usr/lib/gcc/x86_64-redhat-linux/4.4.4 && \
-    ln -s /opt/rh/devtoolset-4/root/usr/lib/gcc/x86_64-redhat-linux/5.3.1 /usr/lib/gcc/x86_64-redhat-linux/4.4.4
-ENV PATH /opt/rh/devtoolset-4/root/usr/bin:$PATH
+    ln -s /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7 /usr/lib/gcc/x86_64-redhat-linux/4.4.4
+ENV PATH /opt/rh/devtoolset-7/root/usr/bin:$PATH
 
 # ruby
-RUN cd /tmp && curl -s http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.1.tar.gz -s -o - | tar zxf - && cd /tmp/ruby-2.5.1 && \
+RUN cd /tmp && curl -s http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz -s -o - | tar zxf - && cd /tmp/ruby-2.5.3 && \
     ./configure --prefix=/opt/ruby --disable-install-doc && \
     make && make install && \
     echo "gem: --no-document" > ~/.gemrc && \
