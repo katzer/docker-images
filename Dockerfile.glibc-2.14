@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
             curl \
             # gcc-multilib \
             git \
+            libssl-dev \
             llvm \
             mingw-w64 \
             musl \
