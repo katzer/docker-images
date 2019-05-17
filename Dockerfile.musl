@@ -29,6 +29,7 @@ RUN apk update && apk add --no-cache \
         gcc \
         git \
         libgcc \
+        libssl1.1 \
         musl-dev \
         openssh \
         ruby \
