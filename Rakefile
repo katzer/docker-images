@@ -20,53 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-namespace :build do
-  desc 'Build appplant/mruby-cli:glibc-2.12'
-  task :glibc_2_12 do
-    sh 'docker build -f Dockerfile.glibc-2.12 -t appplant/mruby-cli:glibc-2.12 .'
-  end
-
-  desc 'Build appplant/mruby-cli:glibc-2.14'
-  task :glibc_2_14 do
-    sh 'docker build -f Dockerfile.glibc-2.14 -t appplant/mruby-cli:glibc-2.14 .'
-  end
-
-  desc 'Build appplant/mruby-cli:musl'
-  task :musl do
-    sh 'docker build -f Dockerfile.musl -t appplant/mruby-cli:musl .'
-  end
+desc 'Build appplant/mruby-cli'
+task :build do
+  sh 'docker build -t appplant/mruby-cli:latest .'
 end
 
-namespace :shell do
-  desc 'Shell into appplant/mruby-cli:glibc-2.12'
-  task :glibc_2_12 do
-    sh 'docker run -ti appplant/mruby-cli:glibc-2.12 /bin/bash -l'
-  end
-
-  desc 'Shell into appplant/mruby-cli:glibc-2.14'
-  task :glibc_2_14 do
-    sh 'docker run -ti appplant/mruby-cli:glibc-2.14 /bin/bash -l'
-  end
-
-  desc 'Shell into appplant/mruby-cli:musl'
-  task :musl do
-    sh 'docker run -ti appplant/mruby-cli:musl /bin/sh -l'
-  end
+desc 'Shell into appplant/mruby-cli'
+task :shell do
+  sh 'docker run -ti appplant/mruby-cli:latest /bin/bash -l'
 end
 
-namespace :push do
-  desc 'Push appplant/mruby-cli:glibc-2.12'
-  task :glibc_2_12 do
-    sh 'docker push appplant/mruby-cli:glibc-2.12'
-  end
-
-  desc 'Push appplant/mruby-cli:glibc-2.14'
-  task :glibc_2_14 do
-    sh 'docker push appplant/mruby-cli:glibc-2.14'
-  end
-
-  desc 'Push appplant/mruby-cli:musl'
-  task :musl do
-    sh 'docker push appplant/mruby-cli:musl'
-  end
+desc 'Push appplant/mruby-cli'
+task :push do
+  sh 'docker push appplant/mruby-cli:latest'
 end

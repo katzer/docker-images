@@ -20,48 +20,54 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM centos:6
-MAINTAINER Sebastian Katzer "katzer@appplant.de"
+FROM ubuntu:19.04
 
-# clang-7 repo
-COPY llvm.repo /etc/yum.repos.d/llvm.repo
+LABEL maintainer="katzer@appplant.de"
 
 # libs
-RUN yum  -y update && yum -y install epel-release centos-release-scl && yum -y install \
+RUN apt-get update && apt-get install -y --no-install-recommends \
             bison \
             clang \
             curl \
-            devtoolset-7-binutils \
-            devtoolset-7-gcc \
+            # gcc-multilib \
             git \
-            # glibc-devel.i686 \
-            # libgcc.i686 \
-            openssh-clients \
+            libssl-dev \
+            llvm \
+            mingw-w64 \
+            musl \
+            musl-tools \
+            openssh-client \
             openssh-server \
+            ruby \
             tar && \
-    yum  -y clean all
-RUN mkdir -p /usr/lib/gcc/x86_64-redhat-linux && \
-    rm -rf /usr/lib/gcc/x86_64-redhat-linux/4.4.4 && \
-    ln -s /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7 /usr/lib/gcc/x86_64-redhat-linux/4.4.4
-ENV PATH /opt/rh/devtoolset-7/root/usr/bin:$PATH
+    apt-get clean && apt-get autoremove -y
 
-# ruby
-RUN cd /tmp && curl -s http://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz -s -o - | tar zxf - && cd /tmp/ruby-2.5.3 && \
-    ./configure --prefix=/opt/ruby --disable-install-doc && \
-    make && make install && \
-    echo "gem: --no-document" > ~/.gemrc && \
-    rm -rf /tmp/*
-ENV PATH /opt/ruby/bin:$PATH
+# rake
+RUN echo "gem: --no-document" > ~/.gemrc && \
+    gem install rake --force
+
+# osx cross compiling tools
+RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
+RUN    apt-get install -y make patch xz-utils \
+    && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz \
+    && UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh \
+    && cd /opt/osxcross && rm -rf *~ build tarballs/* \
+    && apt-get remove -y make patch xz-utils && apt-get autoremove -y
+ENV PATH /opt/osxcross/target/bin:$PATH
 
 # sshd
 RUN    mkdir -p $HOME/.ssh \
-    && service sshd start \
+    && /etc/init.d/ssh start \
     && ssh-keygen -t rsa -q -f $HOME/.ssh/dev.key -N "" \
     && echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys \
     && ssh-keygen -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
     && echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys \
-    && ssh-keyscan -t rsa localhost >> $HOME/.ssh/known_hosts \
-    && echo $'service sshd start' > $HOME/.sshdrc \
-    && echo $'service sshd start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
+    && ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts \
+    && echo '/etc/init.d/ssh start' > $HOME/.sshdrc \
+    && echo '/etc/init.d/ssh start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
+
+# glibc headers
+RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git /opt/glibc && rm -rf /opt/glibc/.git
+ENV GLIBC_HEADERS /opt/glibc/version_headers
 
 ONBUILD WORKDIR /home/mruby/code

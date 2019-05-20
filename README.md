@@ -1,45 +1,88 @@
 # appplant/mruby-cli
-Docker image to build mruby-cli based binaries against glibc-2.12 (or older), glibc-2.14 (or newer) and musl.
+
+Docker image to cross compile mruby-cli based binaries against different __glibc__ versions, __musl__, __darwin__ and __win32__.
 
 The public images can be found [here][repo] on Docker Hub.
 
-
 ## How to use
 
-For cross-compilation against glibc-2.12:
+For custom _glibc_ version add this target to your `build_config.rb`:
 
-    $ docker pull appplant/mruby-cli:glibc-2.12
+```ruby
+MRuby::Build.new('x86_64-pc-linux-gnu-glibc-2.9') do |conf|
+  toolchain :clang
 
-To compile against glibc-2.14:
+  [conf.cc, conf.cxx].each do |cc|
+    cc.flags << "-include /opt/glibc/version_headers/x64/force_link_glibc_2.9.h"
+  end
 
-    $ docker pull appplant/mruby-cli:glibc-2.14
+  gem_config(conf)
+end
+```
 
-To compile against musl:
+For _musl_ add this target to your `build_config.rb`:
 
-    $ docker pull appplant/mruby-cli:musl
+```ruby
+MRuby::CrossBuild.new('x86_64-alpine-linux-musl') do |conf|
+  toolchain :gcc
 
+  [conf.cc, conf.linker].each do |cc|
+    cc.command = 'musl-gcc'
+    cc.flags << '-Os'
+  end
+
+  gem_config(conf)
+end
+```
+
+For _darwin_ add this target to your `build_config.rb`:
+
+```ruby
+MRuby::CrossBuild.new('x86_64-apple-darwin15') do |conf|
+  toolchain :clang
+
+  [conf.cc, conf.linker].each do |cc|
+    cc.command = 'x86_64-apple-darwin15-clang'
+    cc.flags  += %w[-Oz -mmacosx-version-min=10.11 -stdlib=libstdc++]
+  end
+
+  conf.cxx.command      = 'x86_64-apple-darwin15-clang++'
+  conf.archiver.command = 'x86_64-apple-darwin15-ar'
+
+  conf.build_target     = 'x86_64-pc-linux-gnu'
+  conf.host_target      = 'x86_64-apple-darwin15'
+
+  gem_config(conf)
+end
+```
+
+For _win32_ add this target to your `build_config.rb`:
+
+```ruby
+MRuby::CrossBuild.new('x86_64-w64-mingw32') do |conf|
+  toolchain :gcc
+
+  [conf.cc, conf.linker].each do |cc|
+    cc.command = 'x86_64-w64-mingw32-gcc'
+    cc.flags += %w[-Os -DPCRE_STATIC]
+  end
+
+  conf.cxx.command      = 'x86_64-w64-mingw32-cpp'
+  conf.archiver.command = 'x86_64-w64-mingw32-gcc-ar'
+  conf.exts.executable  = '.exe'
+
+  conf.build_target     = 'x86_64-pc-linux-gnu'
+  conf.host_target      = 'x86_64-w64-mingw32'
+
+  gem_config(conf)
+end
+```
 
 ## Development
-
-A copy of an MacOSX SDK is required for the cross-build image _Dockerfile.glibc-2.14_.
-The SDKs are available from [here][osx].
-
-Build each docker image:
-
-    $ docker build -f Dockerfile.[glibc-2.12|glibc-2.14|musl] -t appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl] .
-
-Open a shell to see if all works fine:
-
-    $ docker run -ti appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl] /bin/sh -l
-
-Finally upload the images:
-
-    $ docker push appplant/mruby-cli:[glibc-2.12|glibc-2.14|musl]
 
 See the build tasks:
 
     $ rake -T
-
 
 ## License
 
@@ -49,7 +92,7 @@ Made with :yum: from Leipzig
 
 © 2017 [appPlant GmbH][appplant]
 
-[repo]: https://hub.docker.com/r/appplant/mruby-cli/
+[repo]: https://hub.docker.com/r/appplant/mruby-cli
 [osx]: https://github.com/phracker/MacOSX-SDKs/releases
 [license]: https://opensource.org/licenses/MIT
 [appplant]: www.appplant.de
