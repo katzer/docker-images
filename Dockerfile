@@ -25,7 +25,9 @@ FROM ubuntu:19.04
 LABEL maintainer="katzer@appplant.de"
 
 # libs
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
             bison \
             clang \
             curl \
@@ -58,9 +60,9 @@ ENV PATH /opt/osxcross/target/bin:$PATH
 # sshd
 RUN    mkdir -p $HOME/.ssh \
     && /etc/init.d/ssh start \
-    && ssh-keygen -t rsa -q -f $HOME/.ssh/dev.key -N "" \
+    && ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/dev.key -N "" \
     && echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys \
-    && ssh-keygen -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
+    && ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
     && echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys \
     && ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts \
     && echo '/etc/init.d/ssh start' > $HOME/.sshdrc \
