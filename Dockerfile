@@ -33,7 +33,6 @@ RUN apt-get update && \
             curl \
             # gcc-multilib \
             git \
-            libssl-dev \
             llvm \
             mingw-w64 \
             musl \
@@ -56,6 +55,11 @@ RUN    apt-get install -y make patch xz-utils \
     && cd /opt/osxcross && rm -rf *~ build tarballs/* \
     && apt-get remove -y make patch xz-utils && apt-get autoremove -y
 ENV PATH /opt/osxcross/target/bin:$PATH
+
+# libssl
+RUN echo "deb http://de.archive.ubuntu.com/ubuntu cosmic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get update && apt-get install -y libssl1.0-dev
+ADD libcrypto.so.1.0.0 /lib/x86_64-linux-gnu/libcrypto.so.1.0.0
 
 # sshd
 RUN    mkdir -p $HOME/.ssh \
