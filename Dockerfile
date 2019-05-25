@@ -31,13 +31,11 @@ RUN apt-get update && \
             bison \
             clang \
             curl \
-            # gcc-multilib \
             git \
             llvm \
             mingw-w64 \
             musl \
             musl-tools \
-            openssh-client \
             openssh-server \
             ruby \
             tar && \
@@ -53,7 +51,7 @@ RUN    apt-get install -y make patch xz-utils \
     && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz \
     && UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh \
     && cd /opt/osxcross && rm -rf *~ build tarballs/* \
-    && apt-get remove -y make patch xz-utils && apt-get autoremove -y
+    && apt-get remove -y --auto-remove make patch xz-utils
 ENV PATH /opt/osxcross/target/bin:$PATH
 
 # libssl
