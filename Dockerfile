@@ -47,28 +47,41 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
 
 # osx cross compiling tools
 RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
-RUN    apt-get install -y make patch xz-utils \
-    && curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz \
-    && UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh \
-    && cd /opt/osxcross && rm -rf *~ build tarballs/* \
-    && apt-get remove -y --auto-remove make patch xz-utils
+RUN apt-get install -y --no-install-recommends \
+            make \
+            patch \
+            xz-utils && \
+    curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz && \
+    UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh && \
+    cd /opt/osxcross && rm -rf *~ build tarballs/* && \
+    apt-get remove -y --auto-remove \
+            make \
+            patch \
+            xz-utils
 ENV PATH /opt/osxcross/target/bin:$PATH
 
 # libssl
-RUN echo "deb http://de.archive.ubuntu.com/ubuntu cosmic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
-    apt-get update && apt-get install -y libssl1.0-dev
+RUN apt-get install -y --no-install-recommends gnupg1 && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 02FE5F12ADDE29B2 && \
+    echo "deb http://de.archive.ubuntu.com/ubuntu cosmic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://ppa.launchpad.net/tobydox/mingw-w64/ubuntu bionic main" >> /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+            gnupg1 \
+            libssl1.0-dev \
+            openssl-mingw-w64
 ADD libcrypto.so.1.0.0 /lib/x86_64-linux-gnu/libcrypto.so.1.0.0
 
 # sshd
-RUN    mkdir -p $HOME/.ssh \
-    && /etc/init.d/ssh start \
-    && ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/dev.key -N "" \
-    && echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys \
-    && ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" \
-    && echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys \
-    && ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts \
-    && echo '/etc/init.d/ssh start' > $HOME/.sshdrc \
-    && echo '/etc/init.d/ssh start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
+RUN mkdir -p $HOME/.ssh && \
+    /etc/init.d/ssh start && \
+    ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/dev.key -N "" && \
+    echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys && \
+    ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" && \
+    echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys && \
+    ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts && \
+    echo '/etc/init.d/ssh start' > $HOME/.sshdrc && \
+    echo '/etc/init.d/ssh start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
 
 # glibc headers
 RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git /opt/glibc && rm -rf /opt/glibc/.git
