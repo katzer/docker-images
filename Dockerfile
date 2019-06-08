@@ -32,7 +32,6 @@ RUN apt-get update && \
             clang \
             curl \
             git \
-            llvm \
             mingw-w64 \
             musl \
             musl-tools \
@@ -46,19 +45,35 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
     gem install rake --force
 
 # osx cross compiling tools
-RUN cd /opt/ && git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git && rm -rf /opt/osxcross/.git
-RUN apt-get install -y --no-install-recommends \
+RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osxcross && rm -rf /opt/osxcross/.git && \
+    apt-get install -y --no-install-recommends \
+            cmake \
+            libssl-dev \
+            libxml2-dev \
+            lzma-dev \
             make \
             patch \
+            python \
+            wget \
             xz-utils && \
-    curl -L -o /opt/osxcross/tarballs/MacOSX10.11.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.11.sdk.tar.xz && \
-    UNATTENDED=1 OSX_VERSION_MIN=10.8 ./opt/osxcross/build.sh && \
-    cd /opt/osxcross && rm -rf *~ build tarballs/* && \
+    cd /opt/osxcross && \
+    curl -L -o tarballs/MacOSX10.13.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz && \
+    UNATTENDED=1 SDK_VERSION=10.13 USE_CLANG_AS=1 ./build.sh && \
+    UNATTENDED=1 MACOSX_DEPLOYMENT_TARGET=10.13 PATH=/opt/osxcross/target/bin:$PATH omp install openssl11 && \
+    rm -rf *~ build tarballs/* && \
     apt-get remove -y --auto-remove \
+            cmake \
+            libssl-dev \
+            libxml2-dev \
+            lzma-dev \
             make \
             patch \
+            python \
+            wget \
             xz-utils
 ENV PATH /opt/osxcross/target/bin:$PATH
+ENV MACOSX_DEPLOYMENT_TARGET 10.13
+ENV OSXCROSS_MP_INC 1
 
 # libssl
 RUN apt-get install -y --no-install-recommends gnupg1 && \
@@ -69,7 +84,9 @@ RUN apt-get install -y --no-install-recommends gnupg1 && \
     apt-get install -y --no-install-recommends \
             gnupg1 \
             libssl1.0-dev \
-            openssl-mingw-w64
+            openssl-mingw-w64 && \
+    apt-get remove -y --auto-remove \
+            gnupg1
 ADD libcrypto.so.1.0.0 /lib/x86_64-linux-gnu/libcrypto.so.1.0.0
 
 # sshd
