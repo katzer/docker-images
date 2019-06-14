@@ -103,3 +103,6 @@ RUN mkdir -p $HOME/.ssh && \
 # glibc headers
 RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git /opt/glibc && rm -rf /opt/glibc/.git
 ENV GLIBC_HEADERS /opt/glibc/version_headers
+
+# mruby utils
+RUN gem install mruby_utils:1.2.0
