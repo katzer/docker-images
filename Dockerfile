@@ -59,7 +59,6 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
     cd /opt/osxcross && \
     curl -L -o tarballs/MacOSX10.13.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz && \
     UNATTENDED=1 SDK_VERSION=10.13 USE_CLANG_AS=1 ./build.sh && \
-    UNATTENDED=1 MACOSX_DEPLOYMENT_TARGET=10.13 PATH=/opt/osxcross/target/bin:$PATH omp install openssl11 && \
     rm -rf *~ build tarballs/* && \
     apt-get remove -y --auto-remove \
             cmake \
@@ -74,20 +73,6 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
 ENV PATH /opt/osxcross/target/bin:$PATH
 ENV MACOSX_DEPLOYMENT_TARGET 10.13
 ENV OSXCROSS_MP_INC 1
-
-# libssl
-RUN apt-get install -y --no-install-recommends gnupg1 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 02FE5F12ADDE29B2 && \
-    echo "deb http://de.archive.ubuntu.com/ubuntu cosmic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb http://ppa.launchpad.net/tobydox/mingw-w64/ubuntu bionic main" >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-            gnupg1 \
-            libssl1.0-dev \
-            openssl-mingw-w64 && \
-    apt-get remove -y --auto-remove \
-            gnupg1
-ADD libcrypto.so.1.0.0 /lib/x86_64-linux-gnu/libcrypto.so.1.0.0
 
 # sshd
 RUN mkdir -p $HOME/.ssh && \
