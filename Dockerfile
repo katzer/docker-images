@@ -92,7 +92,7 @@ ADD libcrypto.so.1.0.0 /lib/x86_64-linux-gnu/libcrypto.so.1.0.0
 # sshd
 RUN mkdir -p $HOME/.ssh && \
     /etc/init.d/ssh start && \
-    ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/dev.key -N "" && \
+    ssh-keygen -m PEM -t ecdsa -q -f $HOME/.ssh/dev.key -N "" && \
     echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys && \
     ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" && \
     echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys && \
