@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ubuntu:19.04
+FROM ubuntu:19.10
 
 LABEL maintainer="katzer@appplant.de"
 
@@ -49,6 +49,7 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
     apt-get install -y --no-install-recommends \
             cmake \
             libssl-dev \
+            libstdc++-9-dev \
             libxml2-dev \
             lzma-dev \
             make \
@@ -63,6 +64,7 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
     apt-get remove -y --auto-remove \
             cmake \
             libssl-dev \
+            libstdc++-9-dev \
             libxml2-dev \
             lzma-dev \
             make \
@@ -79,7 +81,7 @@ RUN mkdir -p $HOME/.ssh && \
     /etc/init.d/ssh start && \
     ssh-keygen -m PEM -t ecdsa -q -f $HOME/.ssh/dev.key -N "" && \
     echo `cat $HOME/.ssh/dev.key.pub` >> $HOME/.ssh/authorized_keys && \
-    ssh-keygen -m PEM -t rsa -q -f $HOME/.ssh/devp.key -N "phrase" && \
+    ssh-keygen -m PEM -t ecdsa -q -f $HOME/.ssh/devp.key -N "phrase" && \
     echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys && \
     ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts && \
     echo '/etc/init.d/ssh start' > $HOME/.sshdrc && \
