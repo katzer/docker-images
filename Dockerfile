@@ -58,7 +58,7 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
             wget \
             xz-utils && \
     cd /opt/osxcross && \
-    curl -L -o tarballs/MacOSX10.13.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.13.sdk.tar.xz && \
+    curl -L -o tarballs/MacOSX10.13.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.13.sdk.tar.xz && \
     UNATTENDED=1 SDK_VERSION=10.13 USE_CLANG_AS=1 ./build.sh && \
     rm -rf *~ build tarballs/* && \
     apt-get remove -y --auto-remove \
