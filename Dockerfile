@@ -48,6 +48,7 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
 RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osxcross && rm -rf /opt/osxcross/.git && \
     apt-get install -y --no-install-recommends \
             cmake \
+            libc++-9-dev \
             libssl-dev \
             libstdc++-9-dev \
             libxml2-dev \
@@ -57,12 +58,18 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
             python \
             wget \
             xz-utils && \
+    cd /opt/osxcross/tarballs && \
+    curl -L -o MacOSX10.15.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz && \
+    tar -xvf MacOSX10.15.sdk.tar.xz -C . && \
+    cp -rf /usr/lib/llvm-9/include/c++ MacOSX10.15.sdk/usr/include/c++ && \
+    cp -rf /usr/include/x86_64-linux-gnu/c++/9/bits/ MacOSX10.15.sdk/usr/include/c++/v1/bits && \
+    tar -cJf MacOSX10.15.sdk.tar.xz MacOSX10.15.sdk && \
     cd /opt/osxcross && \
-    curl -L -o tarballs/MacOSX10.13.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.13.sdk.tar.xz && \
-    UNATTENDED=1 SDK_VERSION=10.13 USE_CLANG_AS=1 ./build.sh && \
+    UNATTENDED=1 SDK_VERSION=10.15 OSX_VERSION_MIN=10.13 USE_CLANG_AS=1 ./build.sh && \
     rm -rf *~ build tarballs/* && \
     apt-get remove -y --auto-remove \
             cmake \
+            libc++-9-dev \
             libssl-dev \
             libstdc++-9-dev \
             libxml2-dev \
@@ -92,4 +99,4 @@ RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git 
 ENV GLIBC_HEADERS /opt/glibc/version_headers
 
 # mruby utils
-RUN gem install mruby_utils:1.4.4
+RUN gem install mruby_utils:1.4.5
