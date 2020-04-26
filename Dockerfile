@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ubuntu:19.10
+FROM ubuntu:20.04
 
 LABEL maintainer="katzer@appplant.de"
 
@@ -46,6 +46,7 @@ RUN echo "gem: --no-document" > ~/.gemrc && \
 
 # osx cross compiling tools
 RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osxcross && rm -rf /opt/osxcross/.git && \
+    DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" \
     apt-get install -y --no-install-recommends \
             cmake \
             libc++-9-dev \
@@ -58,6 +59,7 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
             python \
             wget \
             xz-utils && \
+    dpkg-reconfigure --frontend noninteractive tzdata && \
     cd /opt/osxcross/tarballs && \
     curl -L -o MacOSX10.15.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz && \
     tar -xvf MacOSX10.15.sdk.tar.xz -C . && \
