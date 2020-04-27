@@ -51,7 +51,6 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
             cmake \
             libc++-9-dev \
             libssl-dev \
-            libstdc++-9-dev \
             libxml2-dev \
             lzma-dev \
             make \
@@ -73,7 +72,6 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
             cmake \
             libc++-9-dev \
             libssl-dev \
-            libstdc++-9-dev \
             libxml2-dev \
             lzma-dev \
             make \
