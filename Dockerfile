@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM ubuntu:20.04
+FROM ubuntu:20.10
 
 LABEL maintainer="katzer@appplant.de"
 
@@ -49,34 +49,36 @@ RUN git clone -q --depth=1 https://github.com/tpoechtrager/osxcross.git /opt/osx
     DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" \
     apt-get install -y --no-install-recommends \
             cmake \
-            libc++-9-dev \
+            libc++-11-dev \
             libssl-dev \
             libxml2-dev \
             lzma-dev \
             make \
             patch \
             python \
+            tzdata \
             wget \
             xz-utils && \
-    dpkg-reconfigure --frontend noninteractive tzdata && \
+     dpkg-reconfigure --frontend noninteractive tzdata && \
     cd /opt/osxcross/tarballs && \
     curl -L -o MacOSX10.15.sdk.tar.xz https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz && \
     tar -xvf MacOSX10.15.sdk.tar.xz -C . && \
-    cp -rf /usr/lib/llvm-9/include/c++ MacOSX10.15.sdk/usr/include/c++ && \
-    cp -rf /usr/include/x86_64-linux-gnu/c++/9/bits/ MacOSX10.15.sdk/usr/include/c++/v1/bits && \
+    cp -rf /usr/lib/llvm-11/include/c++ MacOSX10.15.sdk/usr/include/c++ && \
+    cp -rf /usr/include/x86_64-linux-gnu/c++/10/bits/ MacOSX10.15.sdk/usr/include/c++/v1/bits && \
     tar -cJf MacOSX10.15.sdk.tar.xz MacOSX10.15.sdk && \
     cd /opt/osxcross && \
     UNATTENDED=1 SDK_VERSION=10.15 OSX_VERSION_MIN=10.13 USE_CLANG_AS=1 ./build.sh && \
     rm -rf *~ build tarballs/* && \
     apt-get remove -y --auto-remove \
             cmake \
-            libc++-9-dev \
+            libc++-11-dev \
             libssl-dev \
             libxml2-dev \
             lzma-dev \
             make \
             patch \
             python \
+            tzdata \
             wget \
             xz-utils
 ENV PATH /opt/osxcross/target/bin:$PATH
