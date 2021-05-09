@@ -101,4 +101,4 @@ RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git 
 ENV GLIBC_HEADERS /opt/glibc/version_headers
 
 # mruby utils
-RUN gem install mruby_utils:3.0.0
+RUN gem install mruby_utils:3.0.1
