@@ -94,7 +94,7 @@ RUN mkdir -p $HOME/.ssh && \
     echo `cat $HOME/.ssh/devp.key.pub` >> $HOME/.ssh/authorized_keys && \
     ssh-keyscan -t ecdsa-sha2-nistp256 localhost >> $HOME/.ssh/known_hosts && \
     echo '/etc/init.d/ssh start' > $HOME/.sshdrc && \
-    echo '/etc/init.d/ssh start\neval `ssh-agent -s`\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
+    echo '/etc/init.d/ssh start\nssh-add $HOME/.ssh/dev.key' > $HOME/.sshrc
 
 # glibc headers
 RUN git clone -q --depth=1 https://github.com/wheybags/glibc_version_header.git /opt/glibc && rm -rf /opt/glibc/.git
